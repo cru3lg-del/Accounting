@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BYC Registry</title>
+<style>
+  :root{
+    --parchment:#F6F1E4;
+    --card:#FFFDF8;
+    --ink:#1E2A38;
+    --ink-soft:#4B5A6B;
+    --rule:#D8CDB0;
+    --gold:#B8924A;
+    --maroon:#7A2E2E;
+    --maroon-bg:#F3E5E2;
+    --teal:#1F5C57;
+    --teal-bg:#E2EFEC;
+    --amber:#8A5A1B;
+    --amber-bg:#F6ECD9;
+    --green:#2E6B3E;
+    --green-bg:#E6F0E6;
+    --font-display: Georgia, 'Times New Roman', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: Consolas, 'Courier New', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--parchment);
+    color:var(--ink);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:1080px;margin:0 auto;padding:28px 20px 80px;}
+
+  /* header */
+  .masthead{
+    display:flex;align-items:center;gap:18px;
+    border-bottom:3px double var(--gold);
+    padding-bottom:16px;margin-bottom:22px;
+  }
+  .seal{
+    width:76;height:66px;flex:none;border-radius:50%;
+    border:2px solid var(--green);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--green);font-family:var(--font-display);font-weight:bold;font-size:11px;
+    letter-spacing:0.5px;text-align:center;line-height:1.1;
+    transform:rotate(-6deg);
+  }
+  .masthead h1{
+    font-family:var(--font-display);font-size:26px;margin:0;color:var(--green);
+    letter-spacing:0.3px;
+  }
+  .masthead p{margin:2px 0 0;color:var(--ink-soft);font-size:13px;}
+  .office-edit{
+    margin-left:auto;text-align:right;
+  }
+  .office-edit input{
+    font-family:var(--font-display);font-size:14px;text-align:right;
+    border:none;background:transparent;color:var(--ink-soft);
+    border-bottom:1px dashed var(--rule);padding:2px 0;width:220px;
+  }
+  .office-edit input:focus{outline:none;border-bottom-color:var(--gold);}
+  .office-edit label{display:block;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:2px;}
+
+  /* tabs */
+  .tabs{display:flex;gap:4px;margin-bottom:20px;}
+  .tab-btn{
+    font-family:var(--font-body);font-size:14px;padding:9px 18px;
+    background:transparent;border:1px solid var(--rule);border-bottom:none;
+    border-radius:6px 6px 0 0;cursor:pointer;color:var(--ink-soft);
+  }
+  .tab-btn.active{background:var(--card);color:var(--ink);font-weight:600;border-color:var(--gold);}
+  .panel{
+    background:var(--card);border:1px solid var(--rule);border-radius:0 8px 8px 8px;
+    padding:24px;
+  }
+  .panel[hidden]{display:none;}
+
+  /* stat cards */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+  .stat{background:var(--parchment);border:1px solid var(--rule);border-radius:6px;padding:12px 14px;}
+  .stat .num{font-family:var(--font-display);font-size:22px;color:var(--ink);}
+  .stat .lbl{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+
+  /* form */
+  .direction-toggle{display:flex;gap:8px;margin-bottom:18px;}
+  .dir-btn{
+    flex:1;padding:12px;border-radius:6px;border:1.5px solid var(--rule);
+    background:var(--card);cursor:pointer;font-family:var(--font-body);font-size:14px;font-weight:600;
+    color:var(--ink-soft);text-align:center;
+  }
+  .dir-btn.sel-release{border-color:var(--maroon);background:var(--maroon-bg);color:var(--maroon);}
+  .dir-btn.sel-receive{border-color:var(--teal);background:var(--teal-bg);color:var(--teal);}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px;}
+  .form-grid .full{grid-column:1/-1;}
+  .field label{display:block;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;}
+  .field input, .field select, .field textarea{
+    width:100%;padding:9px 10px;border:1px solid var(--rule);border-radius:5px;
+    font-family:var(--font-body);font-size:14px;background:#fff;color:var(--ink);
+  }
+  .field input[name="docNo"]{font-family:var(--font-mono);}
+  .field textarea{resize:vertical;min-height:54px;}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none;border-color:var(--gold);}
+  .live-clock{
+    font-family:var(--font-mono);font-size:19px;letter-spacing:1px;color:var(--ink);
+    padding:9px 10px;border:1px solid var(--rule);border-radius:5px;background:#fff;
+  }
+  .form-actions{margin-top:18px;display:flex;gap:10px;align-items:center;}
+  .btn{
+    font-family:var(--font-body);font-size:14px;padding:10px 18px;border-radius:6px;
+    border:1px solid var(--rule);background:var(--card);cursor:pointer;color:var(--ink);
+  }
+  .btn:hover{border-color:var(--gold);}
+  .btn-primary{background:var(--ink);color:var(--parchment);border-color:var(--ink);}
+  .btn-primary:hover{background:#15202c;}
+  .btn-ghost{border:none;background:none;color:var(--ink-soft);text-decoration:underline;padding:6px 4px;}
+  .btn-small{font-size:12px;padding:5px 10px;}
+  .save-note{font-size:12px;color:var(--ink-soft);}
+
+  /* log toolbar */
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;}
+  .toolbar input[type="text"], .toolbar input[type="date"]{
+    padding:8px 10px;border:1px solid var(--rule);border-radius:5px;font-size:13px;font-family:var(--font-body);
+  }
+  .toolbar input[type="text"]{flex:1;min-width:160px;}
+  .pillgroup{display:flex;gap:6px;}
+  .pill{padding:6px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--card);font-size:12.5px;cursor:pointer;color:var(--ink-soft);}
+  .pill.active{background:var(--ink);color:var(--parchment);border-color:var(--ink);}
+
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;
+    color:var(--ink-soft);border-bottom:2px solid var(--gold);padding:8px 8px;
+  }
+  tbody td{padding:10px 8px;border-bottom:1px solid var(--rule);vertical-align:top;}
+  tbody tr:hover{background:#FBF7EC;}
+  .stamp{
+    display:inline-block;padding:2px 9px;border-radius:4px;font-size:10.5px;font-weight:700;
+    letter-spacing:0.5px;text-transform:uppercase;border:1px solid;
+  }
+  .stamp.release{color:var(--maroon);background:var(--maroon-bg);border-color:var(--maroon);}
+  .stamp.receive{color:var(--teal);background:var(--teal-bg);border-color:var(--teal);}
+  .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+  .badge.pending{background:var(--amber-bg);color:var(--amber);}
+  .badge.completed{background:var(--green-bg);color:var(--green);}
+  .badge.forwarded{background:var(--teal-bg);color:var(--teal);}
+  .docno{font-family:var(--font-mono);font-size:12.5px;}
+  .row-actions{display:flex;gap:8px;}
+  .row-actions button{font-size:11.5px;}
+  .empty-state{text-align:center;padding:40px 10px;color:var(--ink-soft);}
+  .empty-state .ti{font-size:13px;}
+
+  /* footer utility */
+  .util-row{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px dashed var(--rule);}
+  .pager{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:14px;flex-wrap:wrap;}
+  .pager button{border:1px solid var(--rule);background:var(--card);color:var(--ink);border-radius:6px;padding:5px 10px;font-size:12.5px;cursor:pointer;font-family:var(--font-body);}
+  .pager button:hover{border-color:var(--gold);}
+  .pager button.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+  .pager button:disabled{opacity:0.4;cursor:default;}
+  .pager .pager-info{font-size:12px;color:var(--ink-soft);margin:0 8px;}
+  .type-chip{display:inline-flex;align-items:center;gap:6px;background:var(--parchment);border:1px solid var(--rule);border-radius:14px;padding:3px 6px 3px 10px;font-size:12px;margin:3px 4px 3px 0;}
+  .type-chip button{border:none;background:var(--maroon-bg);color:var(--maroon);border-radius:50%;width:16px;height:16px;line-height:1;cursor:pointer;font-size:11px;padding:0;}
+  .type-chip button:hover{background:var(--maroon);color:#fff;}
+
+  /* print-only content, hidden on screen */
+  #printArea{display:none;}
+
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:0;}
+    .print-header{border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:16px;}
+    .print-header h1{font-family:Georgia,serif;font-size:20px;margin:0 0 2px;}
+    .print-header .meta{font-size:11px;color:#444;}
+    .print-table{width:100%;border-collapse:collapse;font-size:11px;}
+    .print-table th, .print-table td{border:1px solid #999;padding:5px 6px;text-align:left;}
+    .print-table th{background:#eee;}
+    .slip{width:100%;max-width:520px;border:1px solid #000;padding:18px;font-family:Georgia,serif;}
+    .slip h2{font-size:16px;margin:0 0 4px;}
+    .slip .sub{font-size:11px;color:#444;margin-bottom:14px;}
+    .slip table{width:100%;font-size:12px;border-collapse:collapse;}
+    .slip td{padding:5px 0;border-bottom:1px solid #ccc;}
+    .slip td.k{color:#555;width:38%;}
+    .slip .sign{margin-top:30px;display:flex;justify-content:space-between;}
+    .slip .sign div{width:45%;border-top:1px solid #000;padding-top:4px;font-size:11px;text-align:center;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="masthead">
+    <div class="seal">BYC<br>REGISTRY</div>
+    <div>
+      <h1>Bangsamoro Youth Commission</h1>
+      <p>Documents Entry</p>
+    </div>
+    <div class="office-edit">
+      <label for="officeName">BYC / Accounting</label>
+      <input type="text" id="officeName" placeholder="e.g. Records Section" />
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="entry">New entry</button>
+    <button class="tab-btn" data-tab="log">Log &amp; history</button>
+  </div>
+
+  <!-- ENTRY PANEL -->
+  <div class="panel" id="panel-entry">
+    <div class="direction-toggle">
+      <button type="button" class="dir-btn sel-release" id="btnRelease">↗ Released</button>
+      <button type="button" class="dir-btn" id="btnReceive">↙ Received</button>
+    </div>
+
+    <form id="entryForm">
+      <div class="form-grid">
+        <div class="field">
+          <label>ORS No.</label>
+          <input type="text" name="docNo" id="docNo" required placeholder="e.g. 2026-06-0001234 (Optional)">
+        </div>
+        <div class="field">
+          <label>Document type <button type="button" class="btn-ghost btn-small" id="manageTypesBtn" style="padding:0;text-decoration:underline;font-size:11.5px;">Manage</button></label>
+          <select id="doctypePicker"></select>
+          <input type="hidden" name="docType" id="doctypeHidden">
+          <input type="text" id="doctypeOther" placeholder="Type the new document type, then press Enter" style="display:none;margin-top:6px;">
+          <div id="typeManagePanel" style="display:none;margin-top:8px;padding:10px;border:1px solid var(--rule);border-radius:8px;background:var(--card);"></div>
+        </div>
+        <div class="field">
+          <label id="dateLbl">Date released</label>
+          <div id="liveDateDisplay" class="live-clock">—</div>
+          <input type="date" name="date" id="manualDateInput" style="display:none;">
+          <button type="button" class="btn-ghost btn-small" id="toggleManualDate" style="padding:4px 0;">Enter date manually</button>
+        </div>
+        <div class="field">
+          <label>Amount <span style="text-transform:none;color:var(--ink-soft)">(optional)</span></label>
+          <input type="number" name="amount" id="amount" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <div class="field full">
+          <label>Payee / Title</label>
+          <input type="text" name="subject" required placeholder="e.g. Memorandum on office hours">
+        </div>
+        <div class="field">
+          <label id="personLbl">Recipient name</label>
+          <input type="text" name="personName" placeholder="Full name">
+        </div>
+        <div class="field">
+          <label id="deptLbl">Recipient department / office</label>
+          <select id="departmentPicker"></select>
+          <input type="hidden" name="department" id="departmentHidden">
+          <input type="text" id="departmentOther" placeholder="Type the new department / office name, then press Enter" style="display:none;margin-top:6px;">
+        </div>
+        <div class="field">
+          <label>Time</label>
+          <div id="liveClockDisplay" class="live-clock">00:00:00</div>
+          <input type="time" name="time" id="manualTimeInput" style="display:none;">
+          <button type="button" class="btn-ghost btn-small" id="toggleManualTime" style="padding:4px 0;">Enter time manually</button>
+        </div>
+        <div class="field">
+          <label>Handled by</label>
+          <input type="text" name="handledBy" placeholder="Staff name">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select name="status">
+            <option value="Pending">Pending</option>
+            <option value="Completed">Completed</option>
+            <option value="Forwarded">Forwarded</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Particulars</label>
+          <textarea name="remarks" placeholder="Description of the document"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Log entry</button>
+        <button type="reset" class="btn" id="clearForm">Clear</button>
+        <span class="save-note" id="saveNote"></span>
+      </div>
+    </form>
+  </div>
+
+  <!-- LOG PANEL -->
+  <div class="panel" id="panel-log" hidden>
+    <div class="stats">
+      <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Total entries</div></div>
+      <div class="stat"><div class="num" id="statReleased">0</div><div class="lbl">Released</div></div>
+      <div class="stat"><div class="num" id="statReceived">0</div><div class="lbl">Received</div></div>
+      <div class="stat"><div class="num" id="statPending">0</div><div class="lbl">Pending</div></div>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="search" placeholder="Search doc no, subject, name, department...">
+      <div class="pillgroup" id="dirFilter">
+        <button class="pill active" data-dir="all">All</button>
+        <button class="pill" data-dir="release">Released</button>
+        <button class="pill" data-dir="receive">Received</button>
+      </div>
+      <input type="date" id="dateFrom" title="From date">
+      <input type="date" id="dateTo" title="To date">
+      <button class="btn btn-small" id="printLogBtn">Print log</button>
+    </div>
+
+    <div id="tableWrap"></div>
+    <div id="pager" class="pager"></div>
+
+    <div class="util-row">
+      <span class="save-note" id="countNote"></span>
+      <div>
+        <button class="btn-ghost btn-small" id="exportBtn">Export backup (.json)</button>
+        <button class="btn-ghost btn-small" id="importBtn">Import backup</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none">
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="printArea"></div>
+
+<script>
+(function(){
+  var STORE_KEY = 'doc_entries';
+  var OFFICE_KEY = 'office_name';
+  var entries = [];
+  var direction = 'release';
+  var storageOK = true;
+
+  var DEPT_KEY = 'custom_departments';
+  var DEFAULT_DEPTS = ['Office of the Chairperson','Office of the Executive Director','Office of the Legal','Office of the AFD','Office of the TSD','Accounting','Budget','Cashier','HR','Records','Supply','Procurement','Monitoring & Evaluation','Planning','RSU','TSD'];
+  var customDepts = [];
+
+  var TYPE_KEY = 'custom_doctypes';
+  var HIDDEN_TYPE_KEY = 'hidden_doctypes';
+  var DEFAULT_TYPES = ['Letter','Memorandum','Report','Voucher','Travel Order','Request Form'];
+  var customTypes = [];
+  var hiddenTypes = [];
+
+  function loadTypes(){
+    try{
+      var raw = localStorage.getItem(TYPE_KEY);
+      customTypes = raw ? JSON.parse(raw) : [];
+    }catch(e){ customTypes = []; }
+    try{
+      var rawH = localStorage.getItem(HIDDEN_TYPE_KEY);
+      hiddenTypes = rawH ? JSON.parse(rawH) : [];
+    }catch(e){ hiddenTypes = []; }
+  }
+  function saveTypes(){
+    try{ localStorage.setItem(TYPE_KEY, JSON.stringify(customTypes)); }catch(e){}
+  }
+  function saveHiddenTypes(){
+    try{ localStorage.setItem(HIDDEN_TYPE_KEY, JSON.stringify(hiddenTypes)); }catch(e){}
+  }
+  function allTypes(){
+    var combined = DEFAULT_TYPES.concat(customTypes);
+    var seen = {}, out = [];
+    combined.forEach(function(d){
+      var key = d.toLowerCase();
+      if(!seen[key] && hiddenTypes.indexOf(d)===-1){ seen[key]=true; out.push(d); }
+    });
+    out.sort(function(a,b){ return a.localeCompare(b); });
+    return out;
+  }
+  function renderTypeOptions(selectedValue){
+    var picker = document.getElementById('doctypePicker');
+    var opts = ['<option value="">Select document type</option>'];
+    allTypes().forEach(function(d){
+      opts.push('<option value="'+escapeHtml(d)+'"'+(d===selectedValue?' selected':'')+'>'+escapeHtml(d)+'</option>');
+    });
+    opts.push('<option value="__other__">+ Add new document type</option>');
+    picker.innerHTML = opts.join('');
+    if(document.getElementById('typeManagePanel').style.display !== 'none') renderTypeManagePanel();
+  }
+  function removeDocType(name){
+    if(!confirm('Remove "'+name+'" from the document type list? This will not change entries already logged with this type.')) return;
+    var ci = customTypes.indexOf(name);
+    if(ci!==-1){
+      customTypes.splice(ci,1);
+      saveTypes();
+    } else if(DEFAULT_TYPES.indexOf(name)!==-1 && hiddenTypes.indexOf(name)===-1){
+      hiddenTypes.push(name);
+      saveHiddenTypes();
+    }
+    var hidden = document.getElementById('doctypeHidden');
+    if(hidden.value===name) hidden.value = '';
+    renderTypeOptions('');
+  }
+  function renderTypeManagePanel(){
+    var panel = document.getElementById('typeManagePanel');
+    var types = allTypes();
+    if(types.length===0){
+      panel.innerHTML = '<div style="font-size:12px;color:var(--ink-soft);">No document types yet.</div>';
+      return;
+    }
+    var chips = types.map(function(t){
+      return '<span class="type-chip">'+escapeHtml(t)+'<button type="button" title="Remove" onclick="docApp.removeDocType(\''+t.replace(/'/g,"\\'")+'\')">&times;</button></span>';
+    }).join('');
+    panel.innerHTML = '<div style="font-size:11.5px;color:var(--ink-soft);margin-bottom:6px;">Tap &times; to remove a type from the list. This will not affect entries already logged.</div>'+chips;
+  }
+  document.getElementById('manageTypesBtn').addEventListener('click', function(){
+    var panel = document.getElementById('typeManagePanel');
+    if(panel.style.display==='none'){
+      panel.style.display = 'block';
+      renderTypeManagePanel();
+    } else {
+      panel.style.display = 'none';
+    }
+  });
+  document.getElementById('doctypePicker').addEventListener('change', function(){
+    var otherInput = document.getElementById('doctypeOther');
+    var hidden = document.getElementById('doctypeHidden');
+    if(this.value==='__other__'){
+      otherInput.style.display = 'block';
+      otherInput.value = '';
+      otherInput.focus();
+      hidden.value = '';
+    } else {
+      otherInput.style.display = 'none';
+      hidden.value = this.value;
+    }
+  });
+  function commitOtherType(){
+    var otherInput = document.getElementById('doctypeOther');
+    var val = otherInput.value.trim();
+    if(!val) return;
+    if(allTypes().indexOf(val)===-1){
+      customTypes.push(val);
+      saveTypes();
+    }
+    document.getElementById('doctypeHidden').value = val;
+    renderTypeOptions(val);
+    otherInput.style.display = 'none';
+  }
+  document.getElementById('doctypeOther').addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); commitOtherType(); }
+  });
+  document.getElementById('doctypeOther').addEventListener('blur', commitOtherType);
+
+  function loadDepartments(){
+    try{
+      var raw = localStorage.getItem(DEPT_KEY);
+      customDepts = raw ? JSON.parse(raw) : [];
+    }catch(e){ customDepts = []; }
+  }
+  function saveDepartments(){
+    try{ localStorage.setItem(DEPT_KEY, JSON.stringify(customDepts)); }catch(e){}
+  }
+  function allDepartments(){
+    var combined = DEFAULT_DEPTS.concat(customDepts);
+    var seen = {}, out = [];
+    combined.forEach(function(d){
+      var key = d.toLowerCase();
+      if(!seen[key]){ seen[key]=true; out.push(d); }
+    });
+    out.sort(function(a,b){ return a.localeCompare(b); });
+    return out;
+  }
+  function renderDepartmentOptions(selectedValue){
+    var picker = document.getElementById('departmentPicker');
+    var opts = ['<option value="">Select department / office</option>'];
+    allDepartments().forEach(function(d){
+      opts.push('<option value="'+escapeHtml(d)+'"'+(d===selectedValue?' selected':'')+'>'+escapeHtml(d)+'</option>');
+    });
+    opts.push('<option value="__other__">+ Add new department / office</option>');
+    picker.innerHTML = opts.join('');
+  }
+  document.getElementById('departmentPicker').addEventListener('change', function(){
+    var otherInput = document.getElementById('departmentOther');
+    var hidden = document.getElementById('departmentHidden');
+    if(this.value==='__other__'){
+      otherInput.style.display = 'block';
+      otherInput.value = '';
+      otherInput.focus();
+      hidden.value = '';
+    } else {
+      otherInput.style.display = 'none';
+      hidden.value = this.value;
+    }
+  });
+  function commitOtherDepartment(){
+    var otherInput = document.getElementById('departmentOther');
+    var val = otherInput.value.trim();
+    if(!val) return;
+    if(allDepartments().indexOf(val)===-1){
+      customDepts.push(val);
+      saveDepartments();
+    }
+    document.getElementById('departmentHidden').value = val;
+    renderDepartmentOptions(val);
+    otherInput.style.display = 'none';
+  }
+  document.getElementById('departmentOther').addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); commitOtherDepartment(); }
+  });
+  document.getElementById('departmentOther').addEventListener('blur', commitOtherDepartment);
+
+  // live clock
+  var liveTimeOn = true;
+  var liveDateOn = true;
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function localISODate(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+  function tickClock(){
+    var d = new Date();
+    if(liveTimeOn){
+      document.getElementById('liveClockDisplay').textContent = pad2(d.getHours())+':'+pad2(d.getMinutes())+':'+pad2(d.getSeconds());
+    }
+    if(liveDateOn){
+      document.getElementById('liveDateDisplay').textContent = fmtDate(localISODate(d)) + ' — ' + d.toLocaleDateString(undefined,{weekday:'long'});
+    }
+  }
+  setInterval(tickClock, 1000);
+  document.getElementById('toggleManualTime').addEventListener('click', function(){
+    liveTimeOn = !liveTimeOn;
+    document.getElementById('liveClockDisplay').style.display = liveTimeOn ? 'block' : 'none';
+    document.getElementById('manualTimeInput').style.display = liveTimeOn ? 'none' : 'block';
+    this.textContent = liveTimeOn ? 'Enter time manually' : 'Use live time';
+    if(!liveTimeOn){
+      var d = new Date();
+      document.getElementById('manualTimeInput').value = pad2(d.getHours())+':'+pad2(d.getMinutes());
+    }
+  });
+  document.getElementById('toggleManualDate').addEventListener('click', function(){
+    liveDateOn = !liveDateOn;
+    document.getElementById('liveDateDisplay').style.display = liveDateOn ? 'block' : 'none';
+    document.getElementById('manualDateInput').style.display = liveDateOn ? 'none' : 'block';
+    this.textContent = liveDateOn ? 'Enter date manually' : 'Use live date';
+    if(!liveDateOn){
+      document.getElementById('manualDateInput').value = localISODate(new Date());
+    }
+  });
+  function getTimeValue(){
+    if(liveTimeOn){
+      var d = new Date();
+      return pad2(d.getHours())+':'+pad2(d.getMinutes())+':'+pad2(d.getSeconds());
+    }
+    return document.getElementById('manualTimeInput').value;
+  }
+  function getDateValue(){
+    if(liveDateOn) return localISODate(new Date());
+    return document.getElementById('manualDateInput').value;
+  }
+  function resetTimeAndDept(){
+    liveTimeOn = true;
+    document.getElementById('liveClockDisplay').style.display = 'block';
+    document.getElementById('manualTimeInput').style.display = 'none';
+    document.getElementById('toggleManualTime').textContent = 'Enter time manually';
+    liveDateOn = true;
+    document.getElementById('liveDateDisplay').style.display = 'block';
+    document.getElementById('manualDateInput').style.display = 'none';
+    document.getElementById('toggleManualDate').textContent = 'Enter date manually';
+    document.getElementById('departmentOther').style.display = 'none';
+    document.getElementById('departmentHidden').value = '';
+    renderDepartmentOptions('');
+    document.getElementById('doctypeOther').style.display = 'none';
+    document.getElementById('doctypeHidden').value = '';
+    renderTypeOptions('');
+  }
+
+  function uid(){ return 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function todayStr(){ var d=new Date(); return d.toISOString().slice(0,10); }
+  function nowTime(){ var d=new Date(); return d.toTimeString().slice(0,5); }
+  function fmtDate(s){ if(!s) return ''; var p=s.split('-'); return p.length===3 ? (p[1]+'/'+p[2]+'/'+p[0]) : s; }
+  function fmtAmount(n){ if(n===null || n===undefined || n==='' || isNaN(n)) return ''; return Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      entries = raw ? JSON.parse(raw) : [];
+    }catch(e){ entries = []; storageOK = false; }
+    try{
+      var off = localStorage.getItem(OFFICE_KEY);
+      if(off) document.getElementById('officeName').value = off;
+    }catch(e){}
+    renderLog();
+  }
+
+  function persist(){
+    try{
+      localStorage.setItem(STORE_KEY, JSON.stringify(entries));
+      storageOK = true;
+    }catch(e){ storageOK = false; }
+    var note = document.getElementById('saveNote');
+    note.textContent = storageOK ? 'Saved to this device.' : 'Could not save — your browser may be blocking local storage. Use Export backup to keep a copy.';
+    setTimeout(function(){ note.textContent=''; }, storageOK ? 1800 : 6000);
+  }
+
+  document.getElementById('officeName').addEventListener('change', function(){
+    try{ localStorage.setItem(OFFICE_KEY, this.value); }catch(e){}
+  });
+
+  // tabs
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var t = btn.dataset.tab;
+      document.getElementById('panel-entry').hidden = t!=='entry';
+      document.getElementById('panel-log').hidden = t!=='log';
+      if(t==='log') renderLog();
+    });
+  });
+
+  // direction toggle
+  function setDirection(d){
+    direction = d;
+    var rBtn = document.getElementById('btnRelease'), cBtn = document.getElementById('btnReceive');
+    rBtn.classList.toggle('sel-release', d==='release');
+    cBtn.classList.toggle('sel-receive', d==='receive');
+    document.getElementById('dateLbl').textContent = d==='release' ? 'Date released' : 'Date received';
+    document.getElementById('personLbl').textContent = d==='release' ? 'Recipient name' : 'Sender name';
+    document.getElementById('deptLbl').textContent = d==='release' ? 'Recipient department / office' : 'Sender department / office';
+  }
+  document.getElementById('btnRelease').addEventListener('click', function(){ setDirection('release'); });
+  document.getElementById('btnReceive').addEventListener('click', function(){ setDirection('receive'); });
+
+  // form submit
+  document.getElementById('entryForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var f = e.target;
+    var entry = {
+      id: uid(),
+      direction: direction,
+      docNo: f.docNo.value.trim(),
+      docType: document.getElementById('doctypeHidden').value.trim(),
+      date: getDateValue(),
+      time: getTimeValue(),
+      subject: f.subject.value.trim(),
+      personName: f.personName.value.trim(),
+      department: document.getElementById('departmentHidden').value.trim(),
+      handledBy: f.handledBy.value.trim(),
+      status: f.status.value,
+      amount: f.amount.value ? parseFloat(f.amount.value) : null,
+      remarks: f.remarks.value.trim(),
+      loggedAt: new Date().toISOString()
+    };
+    entries.unshift(entry);
+    persist();
+    f.reset();
+    setDirection(direction);
+    resetTimeAndDept();
+    renderLog();
+  });
+
+  // filters
+  var dirFilterVal = 'all';
+  var currentPage = 1;
+  var PAGE_SIZE = 15;
+  document.getElementById('dirFilter').addEventListener('click', function(e){
+    var b = e.target.closest('.pill');
+    if(!b) return;
+    document.querySelectorAll('#dirFilter .pill').forEach(function(p){ p.classList.remove('active'); });
+    b.classList.add('active');
+    dirFilterVal = b.dataset.dir;
+    currentPage = 1;
+    renderLog();
+  });
+  document.getElementById('search').addEventListener('input', function(){ currentPage=1; renderLog(); });
+  document.getElementById('dateFrom').addEventListener('change', function(){ currentPage=1; renderLog(); });
+  document.getElementById('dateTo').addEventListener('change', function(){ currentPage=1; renderLog(); });
+
+  function getFiltered(){
+    var q = document.getElementById('search').value.trim().toLowerCase();
+    var df = document.getElementById('dateFrom').value;
+    var dt = document.getElementById('dateTo').value;
+    return entries.filter(function(en){
+      if(dirFilterVal!=='all' && en.direction!==dirFilterVal) return false;
+      if(df && en.date < df) return false;
+      if(dt && en.date > dt) return false;
+      if(q){
+        var hay = (en.docNo+' '+en.docType+' '+en.subject+' '+en.personName+' '+en.department+' '+en.handledBy).toLowerCase();
+        if(hay.indexOf(q)===-1) return false;
+      }
+      return true;
+    });
+  }
+
+  function badgeClass(status){
+    if(status==='Completed') return 'completed';
+    if(status==='Forwarded') return 'forwarded';
+    return 'pending';
+  }
+
+  function renderLog(){
+    var list = getFiltered();
+    document.getElementById('statTotal').textContent = entries.length;
+    document.getElementById('statReleased').textContent = entries.filter(function(e){return e.direction==='release';}).length;
+    document.getElementById('statReceived').textContent = entries.filter(function(e){return e.direction==='receive';}).length;
+    document.getElementById('statPending').textContent = entries.filter(function(e){return e.status==='Pending';}).length;
+
+    var wrap = document.getElementById('tableWrap');
+    var pager = document.getElementById('pager');
+    if(list.length===0){
+      document.getElementById('countNote').textContent = '0 of ' + entries.length + ' entries shown';
+      wrap.innerHTML = '<div class="empty-state">No entries match. Log a document or adjust your filters.</div>';
+      pager.innerHTML = '';
+      return;
+    }
+
+    var totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+    if(currentPage > totalPages) currentPage = totalPages;
+    if(currentPage < 1) currentPage = 1;
+    var startIdx = (currentPage-1) * PAGE_SIZE;
+    var pageList = list.slice(startIdx, startIdx + PAGE_SIZE);
+
+    document.getElementById('countNote').textContent =
+      'Showing ' + (startIdx+1) + '\u2013' + (startIdx+pageList.length) + ' of ' + list.length + ' entries (' + entries.length + ' total)';
+
+    var rows = pageList.map(function(en){
+      return '<tr>'+
+        '<td><span class="stamp '+en.direction+'">'+(en.direction==='release'?'Released':'Received')+'</span></td>'+
+        '<td class="docno">'+escapeHtml(en.docNo)+'</td>'+
+        '<td>'+escapeHtml(en.docType)+'</td>'+
+        '<td>'+escapeHtml(en.subject)+'</td>'+
+        '<td>'+escapeHtml(en.personName)+(en.department?'<br><span style="color:var(--ink-soft);font-size:11.5px">'+escapeHtml(en.department)+'</span>':'')+'</td>'+
+        '<td>'+fmtDate(en.date)+(en.time?' '+en.time:'')+'</td>'+
+        '<td>'+escapeHtml(en.handledBy)+'</td>'+
+        '<td>'+(en.amount!==null && en.amount!==undefined ? fmtAmount(en.amount) : '')+'</td>'+
+        '<td><span class="badge '+badgeClass(en.status)+'">'+en.status+'</span></td>'+
+        '<td class="row-actions">'+
+          '<button class="btn-ghost btn-small" onclick="docApp.printSlip(\''+en.id+'\')">Print slip</button>'+
+          '<button class="btn-ghost btn-small" onclick="docApp.deleteEntry(\''+en.id+'\')">Delete</button>'+
+        '</td>'+
+      '</tr>';
+    }).join('');
+    wrap.innerHTML = '<table><thead><tr>'+
+      '<th>Direction</th><th>Doc no.</th><th>Type</th><th>Subject</th><th>Party</th><th>Date / time</th><th>Handled by</th><th>Amount</th><th>Status</th><th></th>'+
+      '</tr></thead><tbody>'+rows+'</tbody></table>';
+
+    renderPager(totalPages);
+  }
+
+  function renderPager(totalPages){
+    var pager = document.getElementById('pager');
+    if(totalPages<=1){ pager.innerHTML=''; return; }
+
+    var btns = [];
+    btns.push('<button '+(currentPage===1?'disabled':'')+' onclick="docApp.goToPage('+(currentPage-1)+')">&laquo; Prev</button>');
+
+    var windowSize = 5;
+    var startPage = Math.max(1, currentPage - Math.floor(windowSize/2));
+    var endPage = Math.min(totalPages, startPage + windowSize - 1);
+    startPage = Math.max(1, endPage - windowSize + 1);
+
+    if(startPage>1){
+      btns.push('<button onclick="docApp.goToPage(1)">1</button>');
+      if(startPage>2) btns.push('<span class="pager-info">&hellip;</span>');
+    }
+    for(var p=startPage; p<=endPage; p++){
+      btns.push('<button class="'+(p===currentPage?'active':'')+'" onclick="docApp.goToPage('+p+')">'+p+'</button>');
+    }
+    if(endPage<totalPages){
+      if(endPage<totalPages-1) btns.push('<span class="pager-info">&hellip;</span>');
+      btns.push('<button onclick="docApp.goToPage('+totalPages+')">'+totalPages+'</button>');
+    }
+
+    btns.push('<button '+(currentPage===totalPages?'disabled':'')+' onclick="docApp.goToPage('+(currentPage+1)+')">Next &raquo;</button>');
+    btns.push('<span class="pager-info">Page '+currentPage+' of '+totalPages+'</span>');
+
+    pager.innerHTML = btns.join('');
+  }
+
+  function goToPage(p){
+    currentPage = p;
+    renderLog();
+    var wrap = document.getElementById('tableWrap');
+    if(wrap) wrap.scrollIntoView({block:'nearest'});
+  }
+
+  function deleteEntry(id){
+    if(!confirm('Delete this entry from the registry? This cannot be undone.')) return;
+    entries = entries.filter(function(e){ return e.id!==id; });
+    persist();
+    renderLog();
+  }
+
+  function printSlip(id){
+    var en = entries.find(function(e){ return e.id===id; });
+    if(!en) return;
+    var office = document.getElementById('officeName').value || 'Accounting Registry';
+    var html = '<div class="print-header"><h1>'+escapeHtml(office)+'</h1>'+
+      '<div class="meta">Transmittal slip — generated '+new Date().toLocaleString()+'</div></div>'+
+      '<div class="slip"><h2>'+(en.direction==='release'?'Document released':'Document received')+'</h2>'+
+      '<div class="sub">Doc no. '+escapeHtml(en.docNo)+'</div>'+
+      '<table>'+
+      '<tr><td class="k">Document type</td><td>'+escapeHtml(en.docType)+'</td></tr>'+
+      '<tr><td class="k">Subject</td><td>'+escapeHtml(en.subject)+'</td></tr>'+
+      '<tr><td class="k">'+(en.direction==='release'?'Recipient':'Sender')+'</td><td>'+escapeHtml(en.personName)+'</td></tr>'+
+      '<tr><td class="k">Department / office</td><td>'+escapeHtml(en.department)+'</td></tr>'+
+      '<tr><td class="k">Date / time</td><td>'+fmtDate(en.date)+' '+(en.time||'')+'</td></tr>'+
+      '<tr><td class="k">Handled by</td><td>'+escapeHtml(en.handledBy)+'</td></tr>'+
+      '<tr><td class="k">Amount</td><td>'+(en.amount!==null && en.amount!==undefined ? fmtAmount(en.amount) : '—')+'</td></tr>'+
+      '<tr><td class="k">Status</td><td>'+en.status+'</td></tr>'+
+      '<tr><td class="k">Remarks</td><td>'+escapeHtml(en.remarks)+'</td></tr>'+
+      '</table>'+
+      '<div class="sign"><div>'+(en.direction==='release'?'Recipient signature':'Sender signature')+'</div><div>Released / received by</div></div>'+
+      '</div>';
+    document.getElementById('printArea').innerHTML = html;
+    window.print();
+  }
+
+  document.getElementById('printLogBtn').addEventListener('click', function(){
+    var office = document.getElementById('officeName').value || 'Accounting Registry';
+    var list = getFiltered();
+    var rows = list.map(function(en){
+      return '<tr>'+
+        '<td>'+(en.direction==='release'?'Released':'Received')+'</td>'+
+        '<td>'+escapeHtml(en.docNo)+'</td>'+
+        '<td>'+escapeHtml(en.docType)+'</td>'+
+        '<td>'+escapeHtml(en.subject)+'</td>'+
+        '<td>'+escapeHtml(en.personName)+'</td>'+
+        '<td>'+escapeHtml(en.department)+'</td>'+
+        '<td>'+fmtDate(en.date)+' '+(en.time||'')+'</td>'+
+        '<td>'+escapeHtml(en.handledBy)+'</td>'+
+        '<td>'+(en.amount!==null && en.amount!==undefined ? fmtAmount(en.amount) : '')+'</td>'+
+        '<td>'+en.status+'</td>'+
+      '</tr>';
+    }).join('');
+    var totalAmount = list.reduce(function(sum,en){ return sum + (en.amount ? Number(en.amount) : 0); }, 0);
+    var html = '<div class="print-header"><h1>'+escapeHtml(office)+'</h1>'+
+      '<div class="meta">Document log and history report — generated '+new Date().toLocaleString()+' — '+list.length+' entries — total amount '+fmtAmount(totalAmount)+'</div></div>'+
+      '<table class="print-table"><thead><tr>'+
+      '<th>Direction</th><th>Doc no.</th><th>Type</th><th>Subject</th><th>Party</th><th>Department</th><th>Date / time</th><th>Handled by</th><th>Amount</th><th>Status</th>'+
+      '</tr></thead><tbody>'+rows+'</tbody></table>';
+    document.getElementById('printArea').innerHTML = html;
+    window.print();
+  });
+
+  // export / import backup
+  document.getElementById('exportBtn').addEventListener('click', function(){
+    var blob = new Blob([JSON.stringify({office:document.getElementById('officeName').value, entries:entries}, null, 2)], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'document-registry-backup-'+todayStr()+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById('importBtn').addEventListener('click', function(){
+    document.getElementById('importFile').click();
+  });
+  document.getElementById('importFile').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var data = JSON.parse(reader.result);
+        if(data.entries && Array.isArray(data.entries)){
+          if(confirm('Import '+data.entries.length+' entries? This will merge with your current log.')){
+            var existingIds = entries.map(function(e){return e.id;});
+            data.entries.forEach(function(en){
+              if(existingIds.indexOf(en.id)===-1) entries.unshift(en);
+            });
+            if(data.office) document.getElementById('officeName').value = data.office;
+            persist();
+            renderLog();
+          }
+        } else {
+          alert('That file does not look like a registry backup.');
+        }
+      }catch(err){ alert('Could not read that file.'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  window.docApp = { deleteEntry: deleteEntry, printSlip: printSlip, goToPage: goToPage, removeDocType: removeDocType };
+
+  setDirection('release');
+  loadDepartments();
+  renderDepartmentOptions('');
+  loadTypes();
+  renderTypeOptions('');
+  tickClock();
+  load();
+})();
+</script>
+</body>
+</html>
